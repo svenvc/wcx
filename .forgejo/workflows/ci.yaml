@@ -1,0 +1,33 @@
+name: Elixir CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-24.04
+    container:
+      image: docker.gitea.com/runner-images:ubuntu-24.04
+    steps:
+    - name: Verify OS
+      run: |
+        cat /etc/os-release
+        uname -a
+    - name: Check out git repository
+      uses: actions/checkout@v4
+    - name: Set up Elixir
+      uses: https://github.com/erlef/setup-beam@v1
+      with:
+        elixir-version: '1.19'
+        otp-version: '28'
+    - name: Install dependencies
+      run: mix deps.get
+    - name: Run tests
+      run: mix test

@@ -77,7 +77,7 @@ defmodule WC do
       Enum.map(files, fn file ->
         case File.exists?(file) do
           true ->
-            stream = File.stream!(file, [], :line)
+            stream = File.stream!(file, :line, [])
             count = WC.Counter.count(stream)
             {file, count}
 

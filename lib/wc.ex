@@ -75,14 +75,22 @@ defmodule WC do
   def run(%{flags: flags, files: files}) do
     results =
       Enum.map(files, fn file ->
-        case File.exists?(file) do
-          true ->
+        case File.stat(file) do
+          {:ok, %File.Stat{type: :directory}} ->
+            IO.puts(:stderr, "wc: #{file}: read: Is a directory")
+            nil
+
+          {:ok, _stat} ->
             stream = File.stream!(file, :line, [])
             count = WC.Counter.count(stream)
             {file, count}
 
-          false ->
+          {:error, :enoent} ->
             IO.puts(:stderr, "wc: #{file}: no such file or directory")
+            nil
+
+          {:error, reason} ->
+            IO.puts(:stderr, "wc: #{file}: #{:file.format_error(reason)}")
             nil
         end
       end)

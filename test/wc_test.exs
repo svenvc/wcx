@@ -265,6 +265,23 @@ defmodule WCTest do
       assert stderr =~ "no such file or directory"
     end
 
+    test "directory prints warning and is skipped" do
+      {output, stderr} =
+        with_io(:stderr, fn ->
+          capture_io(fn ->
+            IO.puts(
+              WC.run(%{
+                flags: %{lines: true, words: true, bytes: true, chars: false, longest: false},
+                files: ["test/fixtures", "test/fixtures/simple.txt"]
+              })
+            )
+          end)
+        end)
+
+      assert stderr =~ "wc: test/fixtures: read: Is a directory"
+      assert output =~ ~r/simple\.txt/
+    end
+
     test "-L flag output" do
       content =
         capture_io(fn ->

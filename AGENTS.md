@@ -34,7 +34,7 @@ Order matters — each step must pass before the next:
 - Expert builds a project engine in the background on first use; a cold first call can take a few seconds, so retry once before assuming it failed
 - Document-scoped requests (`hover`, `definition`) only work on open files, so read the file first if a call returns nothing
 - Expert needs `elixir` and `erl` on `PATH` to compile the project under analysis
-- Upgrade the server with `expert-upgrade` (checksum-verified; `--check` compares installed vs latest)
+- Upgrade the server with `~/.local/bin/expert-upgrade` (checksum-verified; `--check` compares installed vs latest). `~/.local/bin` is not on `PATH`, so invoke it by absolute path — a bare `expert-upgrade` fails
 
 ## Project layout
 

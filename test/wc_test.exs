@@ -43,6 +43,16 @@ defmodule WCTest do
              }
     end
 
+    test "multiple lines in a single chunk" do
+      assert WC.Counter.count(["hello\nworld\n"]) == %WC.Counter{
+               lines: 2,
+               words: 2,
+               bytes: 12,
+               chars: 12,
+               longest: 5
+             }
+    end
+
     test "multiple words per line" do
       assert WC.Counter.count(["hello world\n"]) == %WC.Counter{
                lines: 1,
@@ -141,6 +151,16 @@ defmodule WCTest do
       result = WC.Counter.count([<<255, 194, 160, ?A, ?\n>>])
 
       assert result.words == 1
+    end
+
+    test "invalid UTF-8 words separate on ASCII whitespace" do
+      assert WC.Counter.count([<<255, ?\s, ?A, ?\n>>]) == %WC.Counter{
+               lines: 1,
+               words: 2,
+               bytes: 4,
+               chars: 4,
+               longest: 3
+             }
     end
 
     test "longest line tracking" do
@@ -310,6 +330,24 @@ defmodule WCTest do
       assert stderr =~ "no such file or directory"
     end
 
+    test "unreadable path reports formatted error" do
+      {stdout, stderr} =
+        with_io(:stderr, fn ->
+          capture_io(fn ->
+            IO.puts(
+              WC.run(%{
+                flags: %{lines: true, words: true, bytes: true, chars: false, longest: false},
+                files: ["test/fixtures/simple.txt/nested.txt"]
+              })
+            )
+          end)
+        end)
+
+      assert String.trim(stdout) == ""
+      assert stderr =~ "wc: test/fixtures/simple.txt/nested.txt"
+      assert stderr =~ "not a directory"
+    end
+
     test "directory prints warning and is skipped" do
       {output, stderr} =
         with_io(:stderr, fn ->
@@ -340,6 +378,21 @@ defmodule WCTest do
 
       assert content =~ ~r/11/
       assert content =~ ~r/simple\.txt/
+    end
+  end
+
+  describe "WC.main/1" do
+    test "prints counts for a file argument" do
+      output = capture_io(fn -> WC.main(["test/fixtures/simple.txt"]) end)
+
+      assert output =~ ~r/1\s+2\s+12/
+      assert output =~ ~r/simple\.txt/
+    end
+
+    test "prints counts for flag combinations" do
+      output = capture_io(fn -> WC.main(["-lwL", "test/fixtures/simple.txt"]) end)
+
+      assert output =~ ~r/1\s+2\s+11/
     end
   end
 end

@@ -11,6 +11,7 @@ mix escript.build          # produces ./wc
 
 ```sh
 mix test                    # all tests
+mix test --cover            # 90% coverage gate (Elixir default summary threshold)
 ```
 
 ## CI pipeline (`.forgejo/workflows/ci.yaml`)
@@ -26,7 +27,7 @@ Order matters — each step must pass before the next:
 
 - `lib/wc.ex` — CLI entrypoint (`WC.main/1`), flag parsing, output formatting
 - `lib/wc/counter.ex` — stream-based line/word/byte/character counting (`WC.Counter`)
-- `test/wc_test.exs` — 31 tests covering counter, parse, output, and binary input
+- `test/wc_test.exs` — 36 tests covering counter, parse, output, binary input, and `WC.main/1`
 - `test/fixtures/` — fixture files for file-based tests
 
 ## Key facts

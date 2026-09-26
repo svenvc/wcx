@@ -113,6 +113,36 @@ defmodule WCTest do
       assert result.longest == 5
     end
 
+    test "invalid UTF-8 bytes" do
+      result = WC.Counter.count([<<255, 195, 169, 10>>, <<0>>])
+
+      assert result == %WC.Counter{
+               lines: 1,
+               words: 2,
+               bytes: 5,
+               chars: 4,
+               longest: 2
+             }
+    end
+
+    test "handles chunks split across lines" do
+      result = WC.Counter.count(["hé", "llo\nwor", "ld\n"])
+
+      assert result == %WC.Counter{
+               lines: 2,
+               words: 2,
+               bytes: 13,
+               chars: 12,
+               longest: 5
+             }
+    end
+
+    test "invalid UTF-8 words use byte whitespace" do
+      result = WC.Counter.count([<<255, 194, 160, ?A, ?\n>>])
+
+      assert result.words == 1
+    end
+
     test "longest line tracking" do
       stream = ["short\n", "a bit longer\n", "the longest line in this file\n"]
       result = WC.Counter.count(stream)
@@ -247,6 +277,21 @@ defmodule WCTest do
         end)
 
       assert content =~ ~r/\s*0\s+0\s+0/
+    end
+
+    test "preserves bytes in long lines" do
+      path = Path.join(System.tmp_dir!(), "wc-#{System.unique_integer([:positive])}.bin")
+      content = :binary.copy(<<0>>, 1_000_000)
+      File.write!(path, content)
+      on_exit(fn -> File.rm(path) end)
+
+      output =
+        WC.run(%{
+          flags: %{lines: true, words: true, bytes: true, chars: false, longest: false},
+          files: [path]
+        })
+
+      assert output =~ "1000000"
     end
 
     test "missing file prints error" do

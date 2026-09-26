@@ -4,15 +4,22 @@ defmodule WC do
   """
 
   @default_flags %{lines: true, words: true, bytes: true, chars: false, longest: false}
+  @chunk_size 64 * 1024
 
   @doc """
   Escript entry point. Called by escript with command-line arguments.
   """
   def main(args) do
-    args
-    |> parse_args()
-    |> run()
-    |> IO.puts()
+    config = parse_args(args)
+
+    output =
+      if config.files == [] do
+        run_with_input(config, IO.binstream(:stdio, @chunk_size))
+      else
+        run(config)
+      end
+
+    IO.puts(output)
   end
 
   @doc """
@@ -67,12 +74,14 @@ defmodule WC do
   Runs wc with the given configuration.
   Returns the formatted output string (without trailing newline).
   """
-  def run(%{flags: flags, files: []}) do
-    count = WC.Counter.count(IO.stream(:stdio, :line))
+  def run(config), do: run_with_input(config, IO.stream(:stdio, :line))
+
+  defp run_with_input(%{flags: flags, files: []}, stream) do
+    count = WC.Counter.count(stream)
     format_output(count, flags, "")
   end
 
-  def run(%{flags: flags, files: files}) do
+  defp run_with_input(%{flags: flags, files: files}, _stream) do
     results =
       Enum.map(files, fn file ->
         case File.stat(file) do
@@ -81,7 +90,7 @@ defmodule WC do
             nil
 
           {:ok, _stat} ->
-            stream = File.stream!(file, :line, [])
+            stream = File.stream!(file, @chunk_size, [:raw, :binary])
             count = WC.Counter.count(stream)
             {file, count}
 

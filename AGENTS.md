@@ -26,7 +26,10 @@ Order matters — each step must pass before the next:
 ## Code intelligence (Expert LSP)
 
 - The Elixir language server is Expert, not `elixir-ls` (which is disabled in the opencode config)
-- Prefer the `lsp` tool over `rg`/`Read` for symbol, definition, reference, and type questions: `documentSymbol`, `workspaceSymbol`, `goToDefinition`, `findReferences`, `hover`, `incomingCalls`, `outgoingCalls`
+- Prefer the `lsp` tool over `rg`/`Read` for symbol, definition, reference, and type questions: `documentSymbol`, `workspaceSymbol`, `goToDefinition`, `findReferences`, `hover`
+- No call hierarchy: Expert does not advertise `callHierarchyProvider`, so `prepareCallHierarchy`, `incomingCalls`, and `outgoingCalls` always return nothing. Use `findReferences` for "who calls this" and `goToDefinition` for "what does this call"
+- `findReferences` resolves private functions and finds `&function/arity` captures, but `goToDefinition` on a capture returns nothing
+- Positions are 1-based and must land on the name: column 7 for `def`, column 8 for `defp`. A position on whitespace returns "No results found" rather than an error
 - Diagnostics are pushed by the server — read them instead of running `mix compile` for error feedback
 - Expert builds a project engine in the background on first use; a cold first call can take a few seconds, so retry once before assuming it failed
 - Document-scoped requests (`hover`, `definition`) only work on open files, so read the file first if a call returns nothing

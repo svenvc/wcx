@@ -23,6 +23,16 @@ Order matters — each step must pass before the next:
 3. `mix escript.build`
 4. `mix test`
 
+## Code intelligence (Expert LSP)
+
+- The Elixir language server is Expert, not `elixir-ls` (which is disabled in the opencode config)
+- Prefer the `lsp` tool over `rg`/`Read` for symbol, definition, reference, and type questions: `documentSymbol`, `workspaceSymbol`, `goToDefinition`, `findReferences`, `hover`, `incomingCalls`, `outgoingCalls`
+- Diagnostics are pushed by the server — read them instead of running `mix compile` for error feedback
+- Expert builds a project engine in the background on first use; a cold first call can take a few seconds, so retry once before assuming it failed
+- Document-scoped requests (`hover`, `definition`) only work on open files, so read the file first if a call returns nothing
+- Expert needs `elixir` and `erl` on `PATH` to compile the project under analysis
+- Upgrade the server with `expert-upgrade` (checksum-verified; `--check` compares installed vs latest)
+
 ## Project layout
 
 - `lib/wc.ex` — CLI entrypoint (`WC.main/1`), flag parsing, output formatting

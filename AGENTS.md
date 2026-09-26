@@ -25,8 +25,8 @@ Order matters — each step must pass before the next:
 ## Project layout
 
 - `lib/wc.ex` — CLI entrypoint (`WC.main/1`), flag parsing, output formatting
-- `lib/wc/counter.ex` — stream-based line/word/byte/char counting (`WC.Counter`)
-- `test/wc_test.exs` — 26 tests covering counter, parse, and output
+- `lib/wc/counter.ex` — stream-based line/word/byte/character counting (`WC.Counter`)
+- `test/wc_test.exs` — 31 tests covering counter, parse, output, and binary input
 - `test/fixtures/` — fixture files for file-based tests
 
 ## Key facts
@@ -34,4 +34,8 @@ Order matters — each step must pass before the next:
 - Pure Elixir, zero dependencies
 - Escript entrypoint: `WC.main/1` (config in `mix.exs`)
 - Default flags (no args): `-lwc`
-- File reading uses `File.stream!` (not `File.open` + `IO.stream` — the latter corrupts UTF-8)
+- `WC.Counter` accepts arbitrary binary chunks and buffers partial lines across chunk boundaries
+- CLI file input uses 64 KiB raw `File.stream!/3` chunks; `WC.main/1` uses `IO.binstream/2` for raw stdin
+- Invalid UTF-8 is normalized with `String.replace_invalid/1` for character counts; invalid-binary words use C-style ASCII whitespace
+- `WC.run/1` uses a text stream so ExUnit `capture_io` can provide stdin
+- Directories are reported to stderr and skipped while remaining files continue

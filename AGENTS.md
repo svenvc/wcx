@@ -33,7 +33,8 @@ mix test --cover            # 90% coverage gate (Elixir default summary threshol
 
 ## CI pipeline
 
-Two jobs, in `.forgejo/workflows/ci.yaml` and `.github/workflows/ci.yaml`.
+Three workflows: `.forgejo/workflows/ci.yaml`, `.github/workflows/ci.yaml` and
+`.github/workflows/release.yaml` (release runs only).
 
 `test` — order matters, each step must pass before the next:
 
@@ -42,10 +43,17 @@ Two jobs, in `.forgejo/workflows/ci.yaml` and `.github/workflows/ci.yaml`.
 3. `mix escript.build`
 4. `mix test`
 
-`release` — installs xz, 7z and Zig 0.16.0, then `MIX_ENV=prod mix release
---overwrite` followed by `test/smoke.sh` on the Linux binary. The GitHub workflow
-additionally uploads `burrito_out/` as an artifact and smoke tests the Windows
-binary on `windows-2022`.
+`release` — installs xz, 7z and Zig 0.16.0, restores the ERTS download from the
+actions cache (key `hashFiles('lib/wc/release/erts_resolver.ex')`), then
+`MIX_ENV=prod mix release --overwrite` followed by `test/smoke.sh` on the Linux
+binary, and uploads `burrito_out/` as an artifact. The GitHub workflow
+additionally smoke tests the Windows binary on `windows-2022`. Forgejo must use
+`actions/upload-artifact@v3`: v4's `@actions/artifact` v2 refuses Gitea-based
+servers with `GHESNotSupportedError`.
+
+`release.yaml` (GitHub, `v*` tag pushes) — builds the binaries the same way,
+writes `burrito_out/checksums.txt` and publishes a GitHub Release with the
+binaries attached via `softprops/action-gh-release`.
 
 ## Code intelligence (Expert LSP)
 
@@ -72,6 +80,7 @@ binary on `windows-2022`.
 - `test/wc/application_test.exs`, `test/wc/release/erts_resolver_test.exs` — release plumbing
 - `test/smoke.sh` — black-box checks for a standalone binary, takes the binary path
 - `test/fixtures/` — fixture files for file-based tests
+- `.github/workflows/release.yaml` — tag-push workflow that publishes a GitHub Release for the binaries
 
 ## Key facts
 

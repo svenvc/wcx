@@ -69,6 +69,19 @@ Erlang, because Burrito keeps the payload's own ERTS beams and only swaps the
 binaries and NIFs: bundle a different minor and the kernel fails to boot. Build
 on the same Erlang minor you intend to ship, or pin that minor in CI.
 
+## Releases
+
+Tagging a version on GitHub publishes a release with the binaries attached:
+
+```sh
+git tag v0.2.0 && git push origin-github v0.2.0
+```
+
+`.github/workflows/release.yaml` rebuilds all five targets, smoke tests the Linux
+binary, writes `burrito_out/checksums.txt` with the SHA-256 digests, and
+attaches everything to a GitHub Release with auto-generated notes. The release
+assets are public and permanent, unlike the CI artifacts.
+
 ## Usage
 
 ```sh

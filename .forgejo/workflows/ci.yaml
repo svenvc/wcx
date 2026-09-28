@@ -66,3 +66,8 @@ jobs:
       run: |
         chmod +x burrito_out/wc_linux_x86_64
         ./test/smoke.sh ./burrito_out/wc_linux_x86_64
+    - name: Upload binaries
+      uses: https://github.com/actions/upload-artifact@v4
+      with:
+        name: burrito-binaries
+        path: burrito_out/*

@@ -81,6 +81,9 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: burrito-binaries
+        # upload-artifact roots the archive at the common ancestor of
+        # burrito_out/*, so the binaries arrive without that directory.
+        path: burrito_out
     - name: Smoke test the Windows binary
       shell: bash
       run: ./test/smoke.sh ./burrito_out/wc_windows_x86_64.exe

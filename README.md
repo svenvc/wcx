@@ -59,8 +59,10 @@ directory, later runs reuse it. Each binary carries these maintenance commands:
 ./wc_macos_arm64 maintenance uninstall   # remove the unpacked payload
 ```
 
-macOS Gatekeeper blocks the unsigned binaries until they are either code signed
-or explicitly allowed.
+The macOS binaries are unsigned. Copies fetched with `curl` run fine because
+`curl` sets no quarantine attribute; only a browser download marks the file
+quarantined, which is what Gatekeeper blocks. See the macOS note in the
+Releases section.
 
 The ERTS version is pinned in `lib/wc/release/erts_resolver.ex` to the `X.Y`
 release of the Erlang that built the payload, so a host patch level such as
@@ -81,6 +83,24 @@ git tag v0.2.0 && git push origin-github v0.2.0
 binary, writes `burrito_out/checksums.txt` with the SHA-256 digests, and
 attaches everything to a GitHub Release with auto-generated notes. The release
 assets are public and permanent, unlike the CI artifacts.
+
+Install on macOS or Linux with curl, which runs the binary without Gatekeeper
+friction:
+
+```sh
+curl -L -o ~/.local/bin/wc https://github.com/svenvc/wcx/releases/download/v0.2.0/wc_macos_arm64
+chmod +x ~/.local/bin/wc
+```
+
+Pick the asset matching your platform (`wc_macos_x86_64`, `wc_linux_arm64`,
+`wc_windows_x86_64.exe`, ...). A browser download on macOS sets the quarantine
+attribute, which stops the binary until it is released:
+
+```sh
+xattr -d com.apple.quarantine wc
+```
+
+or right-click the file in Finder and choose **Open**.
 
 ## Usage
 

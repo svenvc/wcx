@@ -96,3 +96,7 @@ binaries attached via `softprops/action-gh-release`.
 - Invalid UTF-8 is normalized with `String.replace_invalid/1` for character counts; invalid-binary words use C-style ASCII whitespace
 - `WC.run/1` uses a text stream so ExUnit `capture_io` can provide stdin
 - Directories are reported to stderr and skipped while remaining files continue
+- The macOS binaries ship unsigned, like expert-lsp/expert: only browser
+  downloads set the `com.apple.quarantine` attribute that Gatekeeper blocks;
+  `curl` installs and tool-based fetches are unaffected. Stripping the attribute
+  or notarizing with an Apple Developer ID would be the only further step

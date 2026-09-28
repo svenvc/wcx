@@ -8,6 +8,11 @@ defmodule WC.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       escript: [main_module: WC],
+      releases: releases(),
+      # The application callback and the release step only do their work inside a
+      # standalone binary, which `mix release` and `test/smoke.sh` cover, so keep
+      # them out of the coverage summary.
+      test_coverage: [ignore_modules: [~r/^WC\.(Application|Release)/]],
       deps: deps()
     ]
   end
@@ -15,15 +20,36 @@ defmodule WC.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      mod: {WC.Application, []}
+    ]
+  end
+
+  # The release name determines the binary name, so it stays `wc`.
+  # BURRITO_TARGET=<alias> mix release builds a single target.
+  defp releases do
+    [
+      wc: [
+        steps: [:assemble, &WC.Release.wrap/1],
+        burrito: [
+          targets: [
+            macos_x86_64: [os: :darwin, cpu: :x86_64],
+            macos_arm64: [os: :darwin, cpu: :aarch64],
+            linux_x86_64: [os: :linux, cpu: :x86_64],
+            linux_arm64: [os: :linux, cpu: :aarch64],
+            windows_x86_64: [os: :windows, cpu: :x86_64]
+          ]
+        ]
+      ]
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      # Build-time only: the release step runs at `mix release` time, so the app
+      # never needs Burrito in the payload.
+      {:burrito, "~> 1.6", runtime: false}
     ]
   end
 end

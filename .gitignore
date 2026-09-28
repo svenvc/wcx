@@ -25,3 +25,6 @@ wc-*.tar
 # Escript binary produced by mix escript.build
 /wc
 
+# Standalone binaries produced by mix release
+/burrito_out/
+

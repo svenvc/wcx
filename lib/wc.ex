@@ -5,6 +5,7 @@ defmodule WC do
 
   @default_flags %{lines: true, words: true, bytes: true, chars: false, longest: false}
   @chunk_size 64 * 1024
+  @version Mix.Project.config()[:version]
 
   @doc """
   Escript entry point. Called by escript with command-line arguments.
@@ -34,7 +35,8 @@ defmodule WC do
           bytes: :boolean,
           chars: :boolean,
           longest: :boolean,
-          help: :boolean
+          help: :boolean,
+          version: :boolean
         ],
         aliases: [
           l: :lines,
@@ -56,6 +58,11 @@ defmodule WC do
       System.halt(0)
     end
 
+    if parsed_map[:version] do
+      IO.puts("wc (Elixir) #{version()}")
+      System.halt(0)
+    end
+
     known = [:lines, :words, :bytes, :chars, :longest]
     active = Map.take(parsed_map, known)
 
@@ -69,6 +76,11 @@ defmodule WC do
 
     %{flags: flags, files: files}
   end
+
+  @doc """
+  Returns the application version as defined in `mix.exs`.
+  """
+  def version, do: @version
 
   @doc """
   Runs wc with the given configuration.
@@ -162,6 +174,7 @@ defmodule WC do
       -m, --chars    print the character counts
       -w, --words    print the word counts
       -h, --help     display this help and exit
+          --version  output version information and exit
     """)
   end
 end

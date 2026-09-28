@@ -395,4 +395,10 @@ defmodule WCTest do
       assert output =~ ~r/1\s+2\s+11/
     end
   end
+
+  describe "WC.version/0" do
+    test "returns the version from mix.exs" do
+      assert WC.version() == Mix.Project.config()[:version]
+    end
+  end
 end

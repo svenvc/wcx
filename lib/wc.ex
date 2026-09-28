@@ -195,7 +195,7 @@ defmodule WC do
   end
 
   defp print_help do
-    IO.puts(:stderr, """
+    IO.write(:stderr, """
     Usage: wc [OPTION]... [FILE]...
     Print newline, word, and byte counts for each FILE.
 

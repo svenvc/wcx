@@ -58,6 +58,11 @@ jobs:
         mkdir -p /opt/zig
         tar -xf /tmp/zig.tar.xz -C /opt/zig --strip-components=1
         echo /opt/zig >> "$GITHUB_PATH"
+    - name: Restore ERTS cache
+      uses: https://github.com/actions/cache@v4
+      with:
+        path: ~/.cache/burrito_file_cache
+        key: burrito-erts-${{ hashFiles('lib/wc/release/erts_resolver.ex') }}
     - name: Install dependencies
       run: mix deps.get
     - name: Build binaries

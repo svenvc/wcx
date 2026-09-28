@@ -62,8 +62,12 @@ directory, later runs reuse it. Each binary carries these maintenance commands:
 macOS Gatekeeper blocks the unsigned binaries until they are either code signed
 or explicitly allowed.
 
-The ERTS version is pinned in `lib/wc/release/erts_resolver.ex`, so builds do
-not depend on which Erlang happens to be installed.
+The ERTS version is pinned in `lib/wc/release/erts_resolver.ex` to the `X.Y`
+release of the Erlang that built the payload, so a host patch level such as
+29.1.1 does not ask for a tarball that does not exist. It has to track the host
+Erlang, because Burrito keeps the payload's own ERTS beams and only swaps the
+binaries and NIFs: bundle a different minor and the kernel fails to boot. Build
+on the same Erlang minor you intend to ship, or pin that minor in CI.
 
 ## Usage
 

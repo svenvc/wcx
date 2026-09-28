@@ -26,8 +26,17 @@ defmodule WC.Release.ERTSResolverTest do
   describe "erts_version/0" do
     test "is a release the BEAM Machine publishes" do
       # The BEAM Machine has no tarballs for patch level ERTS releases, so a
-      # pinned version like "29.1.1" makes every build fail on a 404.
+      # version like "29.1.1" makes every build fail on a 404.
       assert WC.Release.ERTSResolver.erts_version() =~ ~r/^\d+\.\d+$/
+    end
+
+    test "matches the minor version of the Erlang running the build" do
+      # Burrito keeps the host's ERTS beams in the payload and only swaps the
+      # binaries and NIFs, so bundling another minor leaves, say, an OTP 28
+      # prim_tty beam to call an OTP 29 NIF and the kernel stops booting.
+      host = Burrito.Util.get_otp_version() |> String.split(".") |> Enum.take(2) |> Enum.join(".")
+
+      assert WC.Release.ERTSResolver.erts_version() == host
     end
   end
 end

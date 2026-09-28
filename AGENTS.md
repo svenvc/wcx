@@ -79,7 +79,8 @@ binary on `windows-2022`.
 - `burrito` is a `runtime: false` dep, so the release payload holds only OTP, Elixir and `wc`
 - `application/0` has `mod: {WC.Application, []}` because Burrito requires it, and Elixir escripts start the app before calling `main/1` too. The `__BURRITO` env var, set by Burrito's launcher, is the only thing that separates the two paths
 - The ERTS version is pinned in `lib/wc/release/erts_resolver.ex` via a registered Burrito ERTS resolver, not through `:custom_erts` — a custom ERTS source stops Burrito from fetching the musl runtime that Linux binaries need
-- The pin has to be `X.Y`: the BEAM Machine publishes no patch-level ERTS tarballs, so a host OTP like 29.1.1 404s
+- The pin is the `X.Y` release of the *Erlang* running the build, read through `Burrito.Util.get_otp_version/0` (`System.version/0` reports Elixir, `System.otp_release/0` only the major). It must be `X.Y` because the BEAM Machine publishes no patch-level tarballs, and it must match the host minor because Burrito only replaces the payload's `erts-*/bin` and NIF shared objects, leaving the host's own ERTS beams in place — bundle a different minor and the kernel dies on `bad_lib: Function not found prim_tty:setupterm_nif/0`
+- Building on a different Erlang minor than CI is fine, but the resulting binaries only run if built and shipped together; the payload carries beams from the building Erlang
 - Default flags (no args): `-lwc`
 - `WC.Counter` accepts arbitrary binary chunks and buffers partial lines across chunk boundaries
 - CLI file input uses 64 KiB raw `File.stream!/3` chunks; `WC.main/1` uses `IO.binstream/2` for raw stdin

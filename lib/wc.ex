@@ -27,29 +27,7 @@ defmodule WC do
   Parses command-line arguments into a map of flags and file list.
   """
   def parse_args(args) do
-    result =
-      OptionParser.parse!(args,
-        switches: [
-          lines: :boolean,
-          words: :boolean,
-          bytes: :boolean,
-          chars: :boolean,
-          longest: :boolean,
-          help: :boolean,
-          version: :boolean
-        ],
-        aliases: [
-          l: :lines,
-          w: :words,
-          c: :bytes,
-          m: :chars,
-          L: :longest,
-          h: :help
-        ]
-      )
-
-    parsed_keywords = elem(result, 0)
-    files = elem(result, 1)
+    {parsed_keywords, files, invalid} = parse_options(args)
 
     parsed_map = Map.new(parsed_keywords, fn {k, v} -> {k, v} end)
 
@@ -61,6 +39,11 @@ defmodule WC do
     if parsed_map[:version] do
       IO.puts("wc (Elixir) #{version()}")
       System.halt(0)
+    end
+
+    if invalid != [] do
+      IO.puts(:stderr, format_invalid_options(invalid))
+      System.halt(1)
     end
 
     known = [:lines, :words, :bytes, :chars, :longest]
@@ -75,6 +58,54 @@ defmodule WC do
       end
 
     %{flags: flags, files: files}
+  end
+
+  @doc """
+  Parses command-line arguments with `OptionParser`, returning
+  `{parsed_options, files, invalid_options}`. Unknown options land in
+  `invalid_options` instead of being silently dropped.
+  """
+  def parse_options(args) do
+    OptionParser.parse(args,
+      strict: [
+        lines: :boolean,
+        words: :boolean,
+        bytes: :boolean,
+        chars: :boolean,
+        longest: :boolean,
+        help: :boolean,
+        version: :boolean
+      ],
+      aliases: [
+        l: :lines,
+        w: :words,
+        c: :bytes,
+        m: :chars,
+        L: :longest,
+        h: :help
+      ]
+    )
+  end
+
+  @doc """
+  Formats the error message for options rejected by `parse_options/1`.
+  """
+  def format_invalid_options(invalid) do
+    messages = Enum.map(invalid, &invalid_option_message/1)
+
+    Enum.join(messages, "\n") <> "\nTry 'wc --help' for more information."
+  end
+
+  defp invalid_option_message({option, nil}) do
+    if String.starts_with?(option, "--") do
+      "wc: unrecognized option '#{option}'"
+    else
+      "wc: invalid option -- '#{String.trim_leading(option, "-")}'"
+    end
+  end
+
+  defp invalid_option_message({option, _value}) do
+    "wc: option '#{option}' doesn't allow an argument"
   end
 
   @doc """

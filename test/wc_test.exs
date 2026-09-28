@@ -401,4 +401,57 @@ defmodule WCTest do
       assert WC.version() == Mix.Project.config()[:version]
     end
   end
+
+  describe "WC.parse_options/1" do
+    test "unknown short options are reported as invalid" do
+      assert {[], [], [{"-x", nil}]} = WC.parse_options(["-x"])
+    end
+
+    test "unknown long options are reported as invalid" do
+      assert {[], [], [{"--foo", nil}]} = WC.parse_options(["--foo"])
+    end
+
+    test "a value for a boolean option is reported as invalid" do
+      assert {[], [], [{"--lines", "bar"}]} = WC.parse_options(["--lines=bar"])
+    end
+
+    test "known options are not reported as invalid" do
+      assert {parsed, [], []} = WC.parse_options(["-lwL", "--version"])
+      assert parsed[:lines] == true
+      assert parsed[:words] == true
+      assert parsed[:longest] == true
+      assert parsed[:version] == true
+    end
+
+    test "end of options marker is preserved" do
+      assert {[], ["-x", "f"], []} = WC.parse_options(["--", "-x", "f"])
+    end
+  end
+
+  describe "WC.format_invalid_options/1" do
+    test "short option" do
+      message = WC.format_invalid_options([{"-x", nil}])
+
+      assert message == "wc: invalid option -- 'x'\nTry 'wc --help' for more information."
+    end
+
+    test "long option" do
+      message = WC.format_invalid_options([{"--foo", nil}])
+
+      assert message =~ "wc: unrecognized option '--foo'"
+    end
+
+    test "option with an unexpected value" do
+      message = WC.format_invalid_options([{"--lines", "bar"}])
+
+      assert message =~ "wc: option '--lines' doesn't allow an argument"
+    end
+
+    test "multiple invalid options" do
+      message = WC.format_invalid_options([{"-x", nil}, {"--foo", nil}])
+
+      assert message =~ "invalid option -- 'x'"
+      assert message =~ "unrecognized option '--foo'"
+    end
+  end
 end

@@ -28,3 +28,59 @@ jobs:
       run: mix escript.build
     - name: Run tests
       run: mix test
+
+  release:
+    name: Build standalone binaries
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Check out git repository
+      uses: actions/checkout@v7
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.19'
+        otp-version: '28'
+    - name: Install xz, 7z and curl
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y curl xz-utils p7zip-full
+    - name: Install Zig
+      run: |
+        curl -fsSL https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz -o /tmp/zig.tar.xz
+        sudo mkdir -p /opt/zig
+        sudo tar -xf /tmp/zig.tar.xz -C /opt/zig --strip-components=1
+        echo /opt/zig >> "$GITHUB_PATH"
+    - name: Restore ERTS cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/burrito_file_cache
+        key: burrito-erts-${{ hashFiles('lib/wc/release/erts_resolver.ex') }}
+    - name: Install dependencies
+      run: mix deps.get
+    - name: Build binaries
+      run: MIX_ENV=prod mix release --overwrite
+    - name: Smoke test the Linux binary
+      run: |
+        chmod +x burrito_out/wc_linux_x86_64
+        ./test/smoke.sh ./burrito_out/wc_linux_x86_64
+    - name: Upload binaries
+      uses: actions/upload-artifact@v4
+      with:
+        name: burrito-binaries
+        path: burrito_out/*
+        retention-days: 7
+
+  windows-smoke:
+    name: Smoke test the Windows binary
+    needs: release
+    runs-on: windows-2022
+    steps:
+    - name: Check out git repository
+      uses: actions/checkout@v7
+    - name: Download binaries
+      uses: actions/download-artifact@v4
+      with:
+        name: burrito-binaries
+    - name: Smoke test the Windows binary
+      shell: bash
+      run: ./test/smoke.sh ./burrito_out/wc_windows_x86_64.exe

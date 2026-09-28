@@ -34,3 +34,35 @@ jobs:
       run: mix escript.build
     - name: Run tests
       run: mix test
+
+  release:
+    name: Build standalone binaries
+    runs-on: ubuntu-24.04
+    container:
+      image: docker.gitea.com/runner-images:ubuntu-24.04
+    steps:
+    - name: Check out git repository
+      uses: actions/checkout@v4
+    - name: Set up Elixir
+      uses: https://github.com/erlef/setup-beam@v1
+      with:
+        elixir-version: '1.19'
+        otp-version: '28'
+    - name: Install xz, 7z and curl
+      run: |
+        apt-get update
+        apt-get install -y curl xz-utils p7zip-full
+    - name: Install Zig
+      run: |
+        curl -fsSL https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz -o /tmp/zig.tar.xz
+        mkdir -p /opt/zig
+        tar -xf /tmp/zig.tar.xz -C /opt/zig --strip-components=1
+        echo /opt/zig >> "$GITHUB_PATH"
+    - name: Install dependencies
+      run: mix deps.get
+    - name: Build binaries
+      run: MIX_ENV=prod mix release --overwrite
+    - name: Smoke test the Linux binary
+      run: |
+        chmod +x burrito_out/wc_linux_x86_64
+        ./test/smoke.sh ./burrito_out/wc_linux_x86_64

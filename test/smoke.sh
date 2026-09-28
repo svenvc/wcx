@@ -52,17 +52,23 @@ run() {
 
 echo "# smoke testing $BIN"
 
-run "$BIN" -lwcmL "$FIXTURES/simple.txt"
-expect "counts for a file" \
-  "      1       2      12" \
-  "$(counts /tmp/smoke-stdout)"
-expect "names the file" "yes" "$(matches /tmp/smoke-stdout 'simple\.txt$')"
+# The counted inputs are written here instead of taken from test/fixtures,
+# because a Windows checkout rewrites those to CRLF and the byte counts below
+# are about wc, not about how git checked the repository out.
+printf 'a b\nc\n' >/tmp/smoke-input
+: >/tmp/smoke-empty
 
-run "$BIN" "$FIXTURES/simple.txt" "$FIXTURES/empty.txt"
+run "$BIN" -lwcmL /tmp/smoke-input
+expect "counts for a file" \
+  "      2       3       6" \
+  "$(counts /tmp/smoke-stdout)"
+expect "names the file" "yes" "$(matches /tmp/smoke-stdout 'smoke-input$')"
+
+run "$BIN" /tmp/smoke-input /tmp/smoke-empty
 expect "multiple files with a total" \
-  "      1       2      12
+  "      2       3       6
       0       0       0
-      1       2      12" \
+      2       3       6" \
   "$(counts /tmp/smoke-stdout)"
 expect "names the total" "yes" "$(matches /tmp/smoke-stdout ' total$')"
 
@@ -114,7 +120,7 @@ expect "counts a file larger than the read buffer" \
   "  20000   20000  100000" \
   "$(counts /tmp/smoke-stdout)"
 
-rm -f /tmp/smoke-stdout /tmp/smoke-stderr /tmp/smoke-big
+rm -f /tmp/smoke-stdout /tmp/smoke-stderr /tmp/smoke-big /tmp/smoke-input /tmp/smoke-empty
 
 if [ "$failures" -eq 0 ]; then
   echo "# all good"

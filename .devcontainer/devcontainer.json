@@ -1,0 +1,15 @@
+{
+  "name": "Elixir Development",
+
+  "build": {
+    "dockerfile": "Dockerfile",
+  },
+
+  "remoteUser": "ubuntu",
+
+  "customizations": {
+    "zed": {
+      "extensions": ["elixir"],
+    },
+  },
+}

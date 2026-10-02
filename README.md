@@ -71,6 +71,23 @@ Erlang, because Burrito keeps the payload's own ERTS beams and only swaps the
 binaries and NIFs: bundle a different minor and the kernel fails to boot. Build
 on the same Erlang minor you intend to ship, or pin that minor in CI.
 
+## Dev container
+
+Opening the folder in a dev container gives you the whole build toolchain:
+Elixir 1.20.4 on OTP 29, Zig 0.16.0, `xz`, `7z`, the Expert language server and
+OpenCode. Hex, rebar3 and the deps are installed when the container is created,
+so `mix test` and `MIX_ENV=prod mix release --overwrite` work right away.
+
+To build the image without an editor:
+
+```sh
+podman build -t wcx-dev .devcontainer
+```
+
+Binaries built inside the container bundle the OTP 29 ERTS, so treat them as
+testing artifacts: releases are built by CI on OTP 28, and Burrito keeps the ERTS
+of the Erlang that built the payload. See the ERTS note above.
+
 ## Releases
 
 Tagging a version on GitHub publishes a release with the binaries attached:

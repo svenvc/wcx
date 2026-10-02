@@ -2,14 +2,16 @@
   "name": "Elixir Development",
 
   "build": {
-    "dockerfile": "Dockerfile",
+    "dockerfile": "Dockerfile"
   },
 
   "remoteUser": "ubuntu",
 
+  "postCreateCommand": "mix local.hex --force && mix local.rebar --force && mix deps.get",
+
   "customizations": {
     "zed": {
-      "extensions": ["elixir"],
-    },
-  },
+      "extensions": ["elixir"]
+    }
+  }
 }

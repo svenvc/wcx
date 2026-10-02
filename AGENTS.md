@@ -19,6 +19,19 @@ Needs Zig **0.16.0** exactly (Burrito hard-fails on any other version), `xz`, an
 `7zz`/`7z` for the Windows target only. Downloaded ERTS archives are cached in
 `~/.cache/burrito_file_cache` (macOS: `~/Library/Caches/burrito_file_cache`).
 
+### Dev container
+
+`.devcontainer/` builds an image that already has all of the above: Zig 0.16.0
+in `/opt/zig`, `xz-utils`, `p7zip-full`, Expert in `~/.local/bin` (pinned by
+`ARG EXPERT_VERSION`, checksum verified) and OpenCode in `~/.opencode/bin`. The
+`PATH` is set through `ENV`, not through shell rc files, because the language
+server and the lifecycle hooks do not read those.
+`postCreateCommand` installs Hex, rebar3 and the deps.
+
+It runs Elixir 1.20.4 on OTP 29, where CI pins 1.19 on OTP 28, so binaries
+built inside the container bundle the OTP 29 ERTS and are for testing only. CI
+stays the release builder.
+
 ## Test
 
 ```sh
@@ -68,6 +81,7 @@ binaries attached via `softprops/action-gh-release`.
 - Expert needs `elixir` and `erl` on `PATH` to compile the project under analysis
 - Expert does not load `runtime: false` deps, so it reports `struct <Burrito…> is undefined` in `lib/wc/release/erts_resolver.ex`. That is a false positive: `mix compile --warnings-as-errors` resolves it fine
 - Upgrade the server with `expert-upgrade` (checksum-verified; `--check` compares installed vs latest). It typically lives in `~/.local/bin`, which may not be on `PATH`, so invoke it by absolute path if a bare call fails
+- The dev container installs Expert from its checksum-verified GitHub release, pinned by `ARG EXPERT_VERSION` in `.devcontainer/Dockerfile`; bump that argument to update the image
 
 ## Project layout
 
@@ -81,6 +95,8 @@ binaries attached via `softprops/action-gh-release`.
 - `test/smoke.sh` — black-box checks for a standalone binary, takes the binary path
 - `test/fixtures/` — fixture files for file-based tests
 - `.github/workflows/release.yaml` — tag-push workflow that publishes a GitHub Release for the binaries
+- `.devcontainer/Dockerfile`, `.devcontainer/devcontainer.json` — dev container image with the release toolchain and Expert
+- `.zed/settings.json` — enables Expert for Zed, whose Elixir extension defaults to ElixirLS
 
 ## Key facts
 

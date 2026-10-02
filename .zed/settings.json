@@ -1,0 +1,34 @@
+{
+  "languages": {
+    "Elixir": {
+      "language_servers": [
+        "expert",
+        "!elixir-ls",
+        "!dexter",
+        "!next-ls",
+        "!lexical",
+        "..."
+      ]
+    },
+    "EEx": {
+      "language_servers": [
+        "expert",
+        "!elixir-ls",
+        "!dexter",
+        "!next-ls",
+        "!lexical",
+        "..."
+      ]
+    },
+    "HEEx": {
+      "language_servers": [
+        "expert",
+        "!elixir-ls",
+        "!dexter",
+        "!next-ls",
+        "!lexical",
+        "..."
+      ]
+    }
+  }
+}
